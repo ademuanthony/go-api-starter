@@ -1,0 +1,44 @@
+[psql]
+    dbname = "defipay"
+    host = "localhost"
+    user = "postgres"
+    pass = ""
+    sslmode = "disable"
+    whitelist=[
+        "account",
+        "wallet",
+        "package",
+        "subscription",
+        "daily_earning",
+        "deposit",
+        "transfer",
+        "withdrawal",
+        "account_transaction",
+        "investment",
+        "weekly_payout",
+        "referral_payout",
+        "notification",
+        "trade_schedule",
+        "trade",
+        "user_setting",
+        "login_info",
+        "security_code",
+        "transaction",
+        "payment_link",
+        "beneficiary",
+        "agent",
+        "transaction_assignment",
+        "dfc_holders",
+        "dfc_wallet_transaction",
+        "cgold_holders",
+        "stable_naira_transaction",
+        "stable_naira_transaction_assignment",
+        "deposit_wallet",
+        "crypto_deposit",
+        "crypto_asset",
+        "trade_history",
+        "wallet_balanace",
+        "network_currency",
+        "currency",
+        "kyc_form"
+    ]
