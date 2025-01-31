@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"deficonnect/go-api-starter/app"
-	"deficonnect/go-api-starter/postgres/models"
+	"deficonnect/sonicflare/app"
+	"deficonnect/sonicflare/postgres/models"
 
 	"github.com/google/uuid"
 	"github.com/volatiletech/null/v8"
@@ -35,7 +35,6 @@ func (pg PgDb) CreateAccount(ctx context.Context, input app.CreateAccountInput) 
 		PhoneNumber: input.PhoneNumber,
 		FirstName:   input.Name,
 		CreatedAt:   time.Now().Unix(),
-		Bonus:       int64(welcomeBonus),
 	}
 
 	referralCode := strings.ReplaceAll(uuid.NewString(), "-", "")[0:6]
@@ -217,6 +216,23 @@ func (pg PgDb) GetAccountByEmail(ctx context.Context, email string) (*models.Acc
 func (pg PgDb) GetAccountByReferralCode(ctx context.Context, referralCode string) (*models.Account, error) {
 	acc, err := models.Accounts(
 		models.AccountWhere.ReferralCode.EQ(referralCode),
+	).One(ctx, pg.Db)
+
+	if err != nil {
+		return nil, err
+	}
+	bal, err := pg.AccountBalance(ctx, acc.ID)
+	if err != nil {
+		return nil, err
+	}
+	acc.Balance = bal
+
+	return acc, nil
+}
+
+func (pg PgDb) GetAccountByTelegramID(ctx context.Context, telegramID int64) (*models.Account, error) {
+	acc, err := models.Accounts(
+		models.AccountWhere.TelegramID.EQ(telegramID),
 	).One(ctx, pg.Db)
 
 	if err != nil {
@@ -547,7 +563,7 @@ func (pg PgDb) MyDownlines(ctx context.Context, accountID string, generation int
 		return nil, 0, err
 	}
 
-	query = append(query, qm.Load(models.AccountRels.Subscriptions),
+	query = append(query, qm.Load(models.AccountRels.Deposits),
 		qm.OrderBy(models.AccountColumns.CreatedAt+" desc"),
 		qm.Offset(offset),
 		qm.Limit(limit))
@@ -569,16 +585,6 @@ func (pg PgDb) MyDownlines(ctx context.Context, accountID string, generation int
 			LastName:    acc.LastName,
 			PhoneNumber: acc.PhoneNumber,
 			Date:        acc.CreatedAt,
-		}
-		currcentData := time.Now().Unix()
-		for _, s := range acc.R.Subscriptions {
-			if s.StartDate <= currcentData && s.EndDate >= currcentData {
-				pkg, err := models.FindPackage(ctx, pg.Db, s.PackageID)
-				if err != nil {
-					return nil, 0, err
-				}
-				downline.PackageName = pkg.Name
-			}
 		}
 		downlines = append(downlines, downline)
 	}

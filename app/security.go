@@ -3,8 +3,8 @@ package app
 import (
 	"context"
 	"database/sql"
-	"deficonnect/go-api-starter/postgres/models"
-	"deficonnect/go-api-starter/web"
+	"deficonnect/sonicflare/postgres/models"
+	"deficonnect/sonicflare/web"
 	"encoding/base32"
 	"encoding/json"
 	"math/rand"

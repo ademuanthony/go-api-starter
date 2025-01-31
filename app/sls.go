@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 	"database/sql"
-	"deficonnect/go-api-starter/web"
+	"deficonnect/sonicflare/web"
 	"encoding/json"
 	"fmt"
 	"net/http"

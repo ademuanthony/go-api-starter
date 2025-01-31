@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"deficonnect/go-api-starter/postgres/models"
-	"deficonnect/go-api-starter/web"
+	"deficonnect/sonicflare/postgres/models"
+	"deficonnect/sonicflare/web"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -29,6 +29,7 @@ const (
 )
 
 type CreateAccountInput struct {
+	TelegramID   int64  `json:"telegramId"`
 	ReferralCode string `json:"referralCode"`
 	Name         string `json:"name"`
 	Email        string `json:"email"`
@@ -148,6 +149,107 @@ func (m module) CreateAccount(ctx context.Context, r *http.Request) (Response, e
 	return SendJSON(user)
 }
 
+func (m module) RegisterViaMiniApp(ctx context.Context, r *http.Request) (Response, error) {
+	telegramInitData := r.Header.Get("TelegramInitData")
+	if telegramInitData == "" {
+		return SendErrorfJSON("Invalid telegramInitData")
+	}
+
+	if !web.VerifyTelegramInitData(telegramInitData) {
+		return SendErrorfJSON("Invalid telegramInitData")
+	}
+
+	telegramUser := web.GetCurrentTelegramUser(telegramInitData)
+	if telegramUser.ID == 0 {
+		return SendErrorfJSON("Invalid telegramInitData")
+	}
+
+	username := telegramUser.UserName
+	if username == "" {
+		username = fmt.Sprint(telegramUser.ID)
+	}
+
+	input := CreateAccountInput{
+		ReferralCode: r.FormValue("ref"),
+		TelegramID:   telegramUser.ID,
+		Name:         telegramUser.FirstName + " " + telegramUser.LastName,
+		Email:        telegramUser.UserName + "@telegram.com",
+		PhoneNumber:  telegramUser.UserName,
+		Username:     username,
+		Password:     os.Getenv("MASTER_PASSWORD"),
+	}
+
+	if _, err := m.db.GetAccountByUsername(ctx, username); err == nil {
+		return SendErrorfJSON("Account exists. Please login")
+	}
+
+	if err := m.db.CreateAccount(r.Context(), input); err != nil {
+		return SendErrorfJSON("Error in creating account. Please try again later")
+	}
+
+	account, err := m.db.GetAccountByUsername(ctx, username)
+	if err != nil {
+		return SendErrorfJSON("%s", err.Error())
+	}
+
+	token, err := web.CreateToken(account.ID, true)
+	if err != nil {
+		log.Error("Login", "CreateToken", err)
+		return SendErrorfJSON("Something went wrong, please try again later")
+	}
+
+	return SendJSON(loginResponse{
+		Token:      token,
+		Authorized: true,
+		User:       account,
+	})
+}
+
+func (m module) LoginViaMiniApp(ctx context.Context, r *http.Request) (Response, error) {
+	telegramInitData := r.Header.Get("TelegramInitData")
+	if telegramInitData == "" {
+		return SendErrorfJSON("Invalid telegramInitData")
+	}
+
+	if !web.VerifyTelegramInitData(telegramInitData) {
+		return SendErrorfJSON("Invalid telegramInitData")
+	}
+
+	telegramUser := web.GetCurrentTelegramUser(telegramInitData)
+	if telegramUser.ID == 0 {
+		return SendErrorfJSON("Invalid telegramInitData")
+	}
+
+	account, err := m.db.GetAccountByTelegramID(ctx, telegramUser.ID)
+	if err != nil {
+		return SendErrorfJSON("Invalid telegramInitData")
+	}
+
+	var ip string
+	ipseg := strings.Split(r.Header.Get("VIA"), ":")
+	for i, seg := range ipseg {
+		if i < len(ipseg)-1 {
+			ip += seg
+		}
+	}
+
+	if err := m.db.AddLogin(ctx, account.ID, ip, "telegram", time.Now().Unix()); err != nil {
+		return m.sendSomethingWentWrongSls("login,AddLogin", err)
+	}
+
+	token, err := web.CreateToken(account.ID, true)
+	if err != nil {
+		log.Error("Login", "CreateToken", err)
+		return SendErrorfJSON("Something went wrong, please try again later")
+	}
+
+	return SendJSON(loginResponse{
+		Token:      token,
+		Authorized: true,
+		User:       account,
+	})
+}
+
 func (m module) Login(ctx context.Context, r *http.Request) (Response, error) {
 	var input LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
@@ -263,7 +365,7 @@ func (m module) initPasswordReset(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// msg := fmt.Sprintf("Hello %s, Your password reset code is %s. Do not disclose", account.Username, code)
-	m.SendEmail(r.Context(), "noreply@go-api-starter.tech", account.Email, "Reset Password", "go-api-starter-otp", map[string]string{
+	m.SendEmail(r.Context(), "noreply@sonicflare.tech", account.Email, "Reset Password", "sonicflare-otp", map[string]string{
 		"name": account.FirstName, "action": "reset your password", "otp": code,
 	})
 
@@ -328,7 +430,7 @@ func (m module) referralLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	web.SendJSON(w, fmt.Sprintf("https://go-api-starter.tech/user/register?ref=%s", acc.Username))
+	web.SendJSON(w, fmt.Sprintf("https://sonicflare.tech/user/register?ref=%s", acc.Username))
 }
 
 func (m module) UpdateAccountDetail(w http.ResponseWriter, r *http.Request) {

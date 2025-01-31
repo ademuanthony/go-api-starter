@@ -353,6 +353,159 @@ func testDepositsInsertWhitelist(t *testing.T) {
 	}
 }
 
+func testDepositToManyReferralPayouts(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Deposit
+	var b, c ReferralPayout
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, depositDBTypes, true, depositColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Deposit struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, referralPayoutDBTypes, false, referralPayoutColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, referralPayoutDBTypes, false, referralPayoutColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	b.DepositID = a.ID
+	c.DepositID = a.ID
+
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.ReferralPayouts().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if v.DepositID == b.DepositID {
+			bFound = true
+		}
+		if v.DepositID == c.DepositID {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := DepositSlice{&a}
+	if err = a.L.LoadReferralPayouts(ctx, tx, false, (*[]*Deposit)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.ReferralPayouts); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.ReferralPayouts = nil
+	if err = a.L.LoadReferralPayouts(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.ReferralPayouts); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
+func testDepositToManyAddOpReferralPayouts(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Deposit
+	var b, c, d, e ReferralPayout
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, depositDBTypes, false, strmangle.SetComplement(depositPrimaryKeyColumns, depositColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*ReferralPayout{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, referralPayoutDBTypes, false, strmangle.SetComplement(referralPayoutPrimaryKeyColumns, referralPayoutColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*ReferralPayout{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddReferralPayouts(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.DepositID {
+			t.Error("foreign key was wrong value", a.ID, first.DepositID)
+		}
+		if a.ID != second.DepositID {
+			t.Error("foreign key was wrong value", a.ID, second.DepositID)
+		}
+
+		if first.R.Deposit != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Deposit != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.ReferralPayouts[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.ReferralPayouts[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.ReferralPayouts().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
 func testDepositToOneAccountUsingAccount(t *testing.T) {
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))

@@ -25,6 +25,7 @@ import (
 // Account is an object representing the database table.
 type Account struct {
 	ID                 string      `boil:"id" json:"id" toml:"id" yaml:"id"`
+	TelegramID         int64       `boil:"telegram_id" json:"telegram_id" toml:"telegram_id" yaml:"telegram_id"`
 	ReferralCode       string      `boil:"referral_code" json:"referral_code" toml:"referral_code" yaml:"referral_code"`
 	Username           string      `boil:"username" json:"username" toml:"username" yaml:"username"`
 	Password           string      `boil:"password" json:"password" toml:"password" yaml:"password"`
@@ -40,9 +41,7 @@ type Account struct {
 	Balance            int64       `boil:"balance" json:"balance" toml:"balance" yaml:"balance"`
 	Principal          int64       `boil:"principal" json:"principal" toml:"principal" yaml:"principal"`
 	MaturedPrincipal   int64       `boil:"matured_principal" json:"matured_principal" toml:"matured_principal" yaml:"matured_principal"`
-	Role               int         `boil:"role" json:"role" toml:"role" yaml:"role"`
-	Points             int64       `boil:"points" json:"points" toml:"points" yaml:"points"`
-	Bonus              int64       `boil:"bonus" json:"bonus" toml:"bonus" yaml:"bonus"`
+	ReferralEarning    int64       `boil:"referral_earning" json:"referral_earning" toml:"referral_earning" yaml:"referral_earning"`
 	StableNaira        int64       `boil:"stable_naira" json:"stable_naira" toml:"stable_naira" yaml:"stable_naira"`
 
 	R *accountR `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -51,6 +50,7 @@ type Account struct {
 
 var AccountColumns = struct {
 	ID                 string
+	TelegramID         string
 	ReferralCode       string
 	Username           string
 	Password           string
@@ -66,12 +66,11 @@ var AccountColumns = struct {
 	Balance            string
 	Principal          string
 	MaturedPrincipal   string
-	Role               string
-	Points             string
-	Bonus              string
+	ReferralEarning    string
 	StableNaira        string
 }{
 	ID:                 "id",
+	TelegramID:         "telegram_id",
 	ReferralCode:       "referral_code",
 	Username:           "username",
 	Password:           "password",
@@ -87,14 +86,13 @@ var AccountColumns = struct {
 	Balance:            "balance",
 	Principal:          "principal",
 	MaturedPrincipal:   "matured_principal",
-	Role:               "role",
-	Points:             "points",
-	Bonus:              "bonus",
+	ReferralEarning:    "referral_earning",
 	StableNaira:        "stable_naira",
 }
 
 var AccountTableColumns = struct {
 	ID                 string
+	TelegramID         string
 	ReferralCode       string
 	Username           string
 	Password           string
@@ -110,12 +108,11 @@ var AccountTableColumns = struct {
 	Balance            string
 	Principal          string
 	MaturedPrincipal   string
-	Role               string
-	Points             string
-	Bonus              string
+	ReferralEarning    string
 	StableNaira        string
 }{
 	ID:                 "account.id",
+	TelegramID:         "account.telegram_id",
 	ReferralCode:       "account.referral_code",
 	Username:           "account.username",
 	Password:           "account.password",
@@ -131,9 +128,7 @@ var AccountTableColumns = struct {
 	Balance:            "account.balance",
 	Principal:          "account.principal",
 	MaturedPrincipal:   "account.matured_principal",
-	Role:               "account.role",
-	Points:             "account.points",
-	Bonus:              "account.bonus",
+	ReferralEarning:    "account.referral_earning",
 	StableNaira:        "account.stable_naira",
 }
 
@@ -209,31 +204,9 @@ func (w whereHelpernull_String) GTE(x null.String) qm.QueryMod {
 func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
 func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
 
-type whereHelperint struct{ field string }
-
-func (w whereHelperint) EQ(x int) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
-func (w whereHelperint) NEQ(x int) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
-func (w whereHelperint) LT(x int) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
-func (w whereHelperint) LTE(x int) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
-func (w whereHelperint) GT(x int) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
-func (w whereHelperint) GTE(x int) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
-func (w whereHelperint) IN(slice []int) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
-}
-func (w whereHelperint) NIN(slice []int) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
-}
-
 var AccountWhere = struct {
 	ID                 whereHelperstring
+	TelegramID         whereHelperint64
 	ReferralCode       whereHelperstring
 	Username           whereHelperstring
 	Password           whereHelperstring
@@ -249,12 +222,11 @@ var AccountWhere = struct {
 	Balance            whereHelperint64
 	Principal          whereHelperint64
 	MaturedPrincipal   whereHelperint64
-	Role               whereHelperint
-	Points             whereHelperint64
-	Bonus              whereHelperint64
+	ReferralEarning    whereHelperint64
 	StableNaira        whereHelperint64
 }{
 	ID:                 whereHelperstring{field: "\"account\".\"id\""},
+	TelegramID:         whereHelperint64{field: "\"account\".\"telegram_id\""},
 	ReferralCode:       whereHelperstring{field: "\"account\".\"referral_code\""},
 	Username:           whereHelperstring{field: "\"account\".\"username\""},
 	Password:           whereHelperstring{field: "\"account\".\"password\""},
@@ -270,58 +242,34 @@ var AccountWhere = struct {
 	Balance:            whereHelperint64{field: "\"account\".\"balance\""},
 	Principal:          whereHelperint64{field: "\"account\".\"principal\""},
 	MaturedPrincipal:   whereHelperint64{field: "\"account\".\"matured_principal\""},
-	Role:               whereHelperint{field: "\"account\".\"role\""},
-	Points:             whereHelperint64{field: "\"account\".\"points\""},
-	Bonus:              whereHelperint64{field: "\"account\".\"bonus\""},
+	ReferralEarning:    whereHelperint64{field: "\"account\".\"referral_earning\""},
 	StableNaira:        whereHelperint64{field: "\"account\".\"stable_naira\""},
 }
 
 // AccountRels is where relationship names are stored.
 var AccountRels = struct {
 	AccountTransactions        string
-	Beneficiaries              string
-	CryptoAssets               string
-	CryptoDeposits             string
 	DailyEarnings              string
 	Deposits                   string
-	DepositWallets             string
 	Investments                string
 	LoginInfos                 string
 	Notifications              string
-	PaymentLinks               string
 	ReferralPayouts            string
 	FromAccountReferralPayouts string
 	SecurityCodes              string
-	StableNairaTransactions    string
-	Subscriptions              string
-	Trades                     string
-	TradeSchedules             string
-	ReceiverTransfers          string
-	SenderTransfers            string
 	UserSettings               string
 	Wallets                    string
 	Withdrawals                string
 }{
 	AccountTransactions:        "AccountTransactions",
-	Beneficiaries:              "Beneficiaries",
-	CryptoAssets:               "CryptoAssets",
-	CryptoDeposits:             "CryptoDeposits",
 	DailyEarnings:              "DailyEarnings",
 	Deposits:                   "Deposits",
-	DepositWallets:             "DepositWallets",
 	Investments:                "Investments",
 	LoginInfos:                 "LoginInfos",
 	Notifications:              "Notifications",
-	PaymentLinks:               "PaymentLinks",
 	ReferralPayouts:            "ReferralPayouts",
 	FromAccountReferralPayouts: "FromAccountReferralPayouts",
 	SecurityCodes:              "SecurityCodes",
-	StableNairaTransactions:    "StableNairaTransactions",
-	Subscriptions:              "Subscriptions",
-	Trades:                     "Trades",
-	TradeSchedules:             "TradeSchedules",
-	ReceiverTransfers:          "ReceiverTransfers",
-	SenderTransfers:            "SenderTransfers",
 	UserSettings:               "UserSettings",
 	Wallets:                    "Wallets",
 	Withdrawals:                "Withdrawals",
@@ -329,29 +277,18 @@ var AccountRels = struct {
 
 // accountR is where relationships are stored.
 type accountR struct {
-	AccountTransactions        AccountTransactionSlice     `boil:"AccountTransactions" json:"AccountTransactions" toml:"AccountTransactions" yaml:"AccountTransactions"`
-	Beneficiaries              BeneficiarySlice            `boil:"Beneficiaries" json:"Beneficiaries" toml:"Beneficiaries" yaml:"Beneficiaries"`
-	CryptoAssets               CryptoAssetSlice            `boil:"CryptoAssets" json:"CryptoAssets" toml:"CryptoAssets" yaml:"CryptoAssets"`
-	CryptoDeposits             CryptoDepositSlice          `boil:"CryptoDeposits" json:"CryptoDeposits" toml:"CryptoDeposits" yaml:"CryptoDeposits"`
-	DailyEarnings              DailyEarningSlice           `boil:"DailyEarnings" json:"DailyEarnings" toml:"DailyEarnings" yaml:"DailyEarnings"`
-	Deposits                   DepositSlice                `boil:"Deposits" json:"Deposits" toml:"Deposits" yaml:"Deposits"`
-	DepositWallets             DepositWalletSlice          `boil:"DepositWallets" json:"DepositWallets" toml:"DepositWallets" yaml:"DepositWallets"`
-	Investments                InvestmentSlice             `boil:"Investments" json:"Investments" toml:"Investments" yaml:"Investments"`
-	LoginInfos                 LoginInfoSlice              `boil:"LoginInfos" json:"LoginInfos" toml:"LoginInfos" yaml:"LoginInfos"`
-	Notifications              NotificationSlice           `boil:"Notifications" json:"Notifications" toml:"Notifications" yaml:"Notifications"`
-	PaymentLinks               PaymentLinkSlice            `boil:"PaymentLinks" json:"PaymentLinks" toml:"PaymentLinks" yaml:"PaymentLinks"`
-	ReferralPayouts            ReferralPayoutSlice         `boil:"ReferralPayouts" json:"ReferralPayouts" toml:"ReferralPayouts" yaml:"ReferralPayouts"`
-	FromAccountReferralPayouts ReferralPayoutSlice         `boil:"FromAccountReferralPayouts" json:"FromAccountReferralPayouts" toml:"FromAccountReferralPayouts" yaml:"FromAccountReferralPayouts"`
-	SecurityCodes              SecurityCodeSlice           `boil:"SecurityCodes" json:"SecurityCodes" toml:"SecurityCodes" yaml:"SecurityCodes"`
-	StableNairaTransactions    StableNairaTransactionSlice `boil:"StableNairaTransactions" json:"StableNairaTransactions" toml:"StableNairaTransactions" yaml:"StableNairaTransactions"`
-	Subscriptions              SubscriptionSlice           `boil:"Subscriptions" json:"Subscriptions" toml:"Subscriptions" yaml:"Subscriptions"`
-	Trades                     TradeSlice                  `boil:"Trades" json:"Trades" toml:"Trades" yaml:"Trades"`
-	TradeSchedules             TradeScheduleSlice          `boil:"TradeSchedules" json:"TradeSchedules" toml:"TradeSchedules" yaml:"TradeSchedules"`
-	ReceiverTransfers          TransferSlice               `boil:"ReceiverTransfers" json:"ReceiverTransfers" toml:"ReceiverTransfers" yaml:"ReceiverTransfers"`
-	SenderTransfers            TransferSlice               `boil:"SenderTransfers" json:"SenderTransfers" toml:"SenderTransfers" yaml:"SenderTransfers"`
-	UserSettings               UserSettingSlice            `boil:"UserSettings" json:"UserSettings" toml:"UserSettings" yaml:"UserSettings"`
-	Wallets                    WalletSlice                 `boil:"Wallets" json:"Wallets" toml:"Wallets" yaml:"Wallets"`
-	Withdrawals                WithdrawalSlice             `boil:"Withdrawals" json:"Withdrawals" toml:"Withdrawals" yaml:"Withdrawals"`
+	AccountTransactions        AccountTransactionSlice `boil:"AccountTransactions" json:"AccountTransactions" toml:"AccountTransactions" yaml:"AccountTransactions"`
+	DailyEarnings              DailyEarningSlice       `boil:"DailyEarnings" json:"DailyEarnings" toml:"DailyEarnings" yaml:"DailyEarnings"`
+	Deposits                   DepositSlice            `boil:"Deposits" json:"Deposits" toml:"Deposits" yaml:"Deposits"`
+	Investments                InvestmentSlice         `boil:"Investments" json:"Investments" toml:"Investments" yaml:"Investments"`
+	LoginInfos                 LoginInfoSlice          `boil:"LoginInfos" json:"LoginInfos" toml:"LoginInfos" yaml:"LoginInfos"`
+	Notifications              NotificationSlice       `boil:"Notifications" json:"Notifications" toml:"Notifications" yaml:"Notifications"`
+	ReferralPayouts            ReferralPayoutSlice     `boil:"ReferralPayouts" json:"ReferralPayouts" toml:"ReferralPayouts" yaml:"ReferralPayouts"`
+	FromAccountReferralPayouts ReferralPayoutSlice     `boil:"FromAccountReferralPayouts" json:"FromAccountReferralPayouts" toml:"FromAccountReferralPayouts" yaml:"FromAccountReferralPayouts"`
+	SecurityCodes              SecurityCodeSlice       `boil:"SecurityCodes" json:"SecurityCodes" toml:"SecurityCodes" yaml:"SecurityCodes"`
+	UserSettings               UserSettingSlice        `boil:"UserSettings" json:"UserSettings" toml:"UserSettings" yaml:"UserSettings"`
+	Wallets                    WalletSlice             `boil:"Wallets" json:"Wallets" toml:"Wallets" yaml:"Wallets"`
+	Withdrawals                WithdrawalSlice         `boil:"Withdrawals" json:"Withdrawals" toml:"Withdrawals" yaml:"Withdrawals"`
 }
 
 // NewStruct creates a new relationship struct
@@ -363,9 +300,9 @@ func (*accountR) NewStruct() *accountR {
 type accountL struct{}
 
 var (
-	accountAllColumns            = []string{"id", "referral_code", "username", "password", "email", "phone_number", "created_at", "first_name", "last_name", "referral_id", "referral_id_2", "referral_id_3", "withdrawal_addresss", "balance", "principal", "matured_principal", "role", "points", "bonus", "stable_naira"}
-	accountColumnsWithoutDefault = []string{"id", "referral_code", "username", "password", "email", "phone_number", "created_at"}
-	accountColumnsWithDefault    = []string{"first_name", "last_name", "referral_id", "referral_id_2", "referral_id_3", "withdrawal_addresss", "balance", "principal", "matured_principal", "role", "points", "bonus", "stable_naira"}
+	accountAllColumns            = []string{"id", "telegram_id", "referral_code", "username", "password", "email", "phone_number", "created_at", "first_name", "last_name", "referral_id", "referral_id_2", "referral_id_3", "withdrawal_addresss", "balance", "principal", "matured_principal", "referral_earning", "stable_naira"}
+	accountColumnsWithoutDefault = []string{"id", "telegram_id", "referral_code", "username", "password", "email", "phone_number", "created_at"}
+	accountColumnsWithDefault    = []string{"first_name", "last_name", "referral_id", "referral_id_2", "referral_id_3", "withdrawal_addresss", "balance", "principal", "matured_principal", "referral_earning", "stable_naira"}
 	accountPrimaryKeyColumns     = []string{"id"}
 )
 
@@ -481,69 +418,6 @@ func (o *Account) AccountTransactions(mods ...qm.QueryMod) accountTransactionQue
 	return query
 }
 
-// Beneficiaries retrieves all the beneficiary's Beneficiaries with an executor.
-func (o *Account) Beneficiaries(mods ...qm.QueryMod) beneficiaryQuery {
-	var queryMods []qm.QueryMod
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"beneficiary\".\"account_id\"=?", o.ID),
-	)
-
-	query := Beneficiaries(queryMods...)
-	queries.SetFrom(query.Query, "\"beneficiary\"")
-
-	if len(queries.GetSelect(query.Query)) == 0 {
-		queries.SetSelect(query.Query, []string{"\"beneficiary\".*"})
-	}
-
-	return query
-}
-
-// CryptoAssets retrieves all the crypto_asset's CryptoAssets with an executor.
-func (o *Account) CryptoAssets(mods ...qm.QueryMod) cryptoAssetQuery {
-	var queryMods []qm.QueryMod
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"crypto_asset\".\"account_id\"=?", o.ID),
-	)
-
-	query := CryptoAssets(queryMods...)
-	queries.SetFrom(query.Query, "\"crypto_asset\"")
-
-	if len(queries.GetSelect(query.Query)) == 0 {
-		queries.SetSelect(query.Query, []string{"\"crypto_asset\".*"})
-	}
-
-	return query
-}
-
-// CryptoDeposits retrieves all the crypto_deposit's CryptoDeposits with an executor.
-func (o *Account) CryptoDeposits(mods ...qm.QueryMod) cryptoDepositQuery {
-	var queryMods []qm.QueryMod
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"crypto_deposit\".\"account_id\"=?", o.ID),
-	)
-
-	query := CryptoDeposits(queryMods...)
-	queries.SetFrom(query.Query, "\"crypto_deposit\"")
-
-	if len(queries.GetSelect(query.Query)) == 0 {
-		queries.SetSelect(query.Query, []string{"\"crypto_deposit\".*"})
-	}
-
-	return query
-}
-
 // DailyEarnings retrieves all the daily_earning's DailyEarnings with an executor.
 func (o *Account) DailyEarnings(mods ...qm.QueryMod) dailyEarningQuery {
 	var queryMods []qm.QueryMod
@@ -581,27 +455,6 @@ func (o *Account) Deposits(mods ...qm.QueryMod) depositQuery {
 
 	if len(queries.GetSelect(query.Query)) == 0 {
 		queries.SetSelect(query.Query, []string{"\"deposit\".*"})
-	}
-
-	return query
-}
-
-// DepositWallets retrieves all the deposit_wallet's DepositWallets with an executor.
-func (o *Account) DepositWallets(mods ...qm.QueryMod) depositWalletQuery {
-	var queryMods []qm.QueryMod
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"deposit_wallet\".\"account_id\"=?", o.ID),
-	)
-
-	query := DepositWallets(queryMods...)
-	queries.SetFrom(query.Query, "\"deposit_wallet\"")
-
-	if len(queries.GetSelect(query.Query)) == 0 {
-		queries.SetSelect(query.Query, []string{"\"deposit_wallet\".*"})
 	}
 
 	return query
@@ -670,27 +523,6 @@ func (o *Account) Notifications(mods ...qm.QueryMod) notificationQuery {
 	return query
 }
 
-// PaymentLinks retrieves all the payment_link's PaymentLinks with an executor.
-func (o *Account) PaymentLinks(mods ...qm.QueryMod) paymentLinkQuery {
-	var queryMods []qm.QueryMod
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"payment_link\".\"account_id\"=?", o.ID),
-	)
-
-	query := PaymentLinks(queryMods...)
-	queries.SetFrom(query.Query, "\"payment_link\"")
-
-	if len(queries.GetSelect(query.Query)) == 0 {
-		queries.SetSelect(query.Query, []string{"\"payment_link\".*"})
-	}
-
-	return query
-}
-
 // ReferralPayouts retrieves all the referral_payout's ReferralPayouts with an executor.
 func (o *Account) ReferralPayouts(mods ...qm.QueryMod) referralPayoutQuery {
 	var queryMods []qm.QueryMod
@@ -749,132 +581,6 @@ func (o *Account) SecurityCodes(mods ...qm.QueryMod) securityCodeQuery {
 
 	if len(queries.GetSelect(query.Query)) == 0 {
 		queries.SetSelect(query.Query, []string{"\"security_code\".*"})
-	}
-
-	return query
-}
-
-// StableNairaTransactions retrieves all the stable_naira_transaction's StableNairaTransactions with an executor.
-func (o *Account) StableNairaTransactions(mods ...qm.QueryMod) stableNairaTransactionQuery {
-	var queryMods []qm.QueryMod
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"stable_naira_transaction\".\"account_id\"=?", o.ID),
-	)
-
-	query := StableNairaTransactions(queryMods...)
-	queries.SetFrom(query.Query, "\"stable_naira_transaction\"")
-
-	if len(queries.GetSelect(query.Query)) == 0 {
-		queries.SetSelect(query.Query, []string{"\"stable_naira_transaction\".*"})
-	}
-
-	return query
-}
-
-// Subscriptions retrieves all the subscription's Subscriptions with an executor.
-func (o *Account) Subscriptions(mods ...qm.QueryMod) subscriptionQuery {
-	var queryMods []qm.QueryMod
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"subscription\".\"account_id\"=?", o.ID),
-	)
-
-	query := Subscriptions(queryMods...)
-	queries.SetFrom(query.Query, "\"subscription\"")
-
-	if len(queries.GetSelect(query.Query)) == 0 {
-		queries.SetSelect(query.Query, []string{"\"subscription\".*"})
-	}
-
-	return query
-}
-
-// Trades retrieves all the trade's Trades with an executor.
-func (o *Account) Trades(mods ...qm.QueryMod) tradeQuery {
-	var queryMods []qm.QueryMod
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"trade\".\"account_id\"=?", o.ID),
-	)
-
-	query := Trades(queryMods...)
-	queries.SetFrom(query.Query, "\"trade\"")
-
-	if len(queries.GetSelect(query.Query)) == 0 {
-		queries.SetSelect(query.Query, []string{"\"trade\".*"})
-	}
-
-	return query
-}
-
-// TradeSchedules retrieves all the trade_schedule's TradeSchedules with an executor.
-func (o *Account) TradeSchedules(mods ...qm.QueryMod) tradeScheduleQuery {
-	var queryMods []qm.QueryMod
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"trade_schedule\".\"account_id\"=?", o.ID),
-	)
-
-	query := TradeSchedules(queryMods...)
-	queries.SetFrom(query.Query, "\"trade_schedule\"")
-
-	if len(queries.GetSelect(query.Query)) == 0 {
-		queries.SetSelect(query.Query, []string{"\"trade_schedule\".*"})
-	}
-
-	return query
-}
-
-// ReceiverTransfers retrieves all the transfer's Transfers with an executor via receiver_id column.
-func (o *Account) ReceiverTransfers(mods ...qm.QueryMod) transferQuery {
-	var queryMods []qm.QueryMod
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"transfer\".\"receiver_id\"=?", o.ID),
-	)
-
-	query := Transfers(queryMods...)
-	queries.SetFrom(query.Query, "\"transfer\"")
-
-	if len(queries.GetSelect(query.Query)) == 0 {
-		queries.SetSelect(query.Query, []string{"\"transfer\".*"})
-	}
-
-	return query
-}
-
-// SenderTransfers retrieves all the transfer's Transfers with an executor via sender_id column.
-func (o *Account) SenderTransfers(mods ...qm.QueryMod) transferQuery {
-	var queryMods []qm.QueryMod
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"transfer\".\"sender_id\"=?", o.ID),
-	)
-
-	query := Transfers(queryMods...)
-	queries.SetFrom(query.Query, "\"transfer\"")
-
-	if len(queries.GetSelect(query.Query)) == 0 {
-		queries.SetSelect(query.Query, []string{"\"transfer\".*"})
 	}
 
 	return query
@@ -1024,279 +730,6 @@ func (accountL) LoadAccountTransactions(ctx context.Context, e boil.ContextExecu
 				local.R.AccountTransactions = append(local.R.AccountTransactions, foreign)
 				if foreign.R == nil {
 					foreign.R = &accountTransactionR{}
-				}
-				foreign.R.Account = local
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadBeneficiaries allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (accountL) LoadBeneficiaries(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
-	var slice []*Account
-	var object *Account
-
-	if singular {
-		object = maybeAccount.(*Account)
-	} else {
-		slice = *maybeAccount.(*[]*Account)
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &accountR{}
-		}
-		args = append(args, object.ID)
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &accountR{}
-			}
-
-			for _, a := range args {
-				if queries.Equal(a, obj.ID) {
-					continue Outer
-				}
-			}
-
-			args = append(args, obj.ID)
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(
-		qm.From(`beneficiary`),
-		qm.WhereIn(`beneficiary.account_id in ?`, args...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load beneficiary")
-	}
-
-	var resultSlice []*Beneficiary
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice beneficiary")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on beneficiary")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for beneficiary")
-	}
-
-	if singular {
-		object.R.Beneficiaries = resultSlice
-		for _, foreign := range resultSlice {
-			if foreign.R == nil {
-				foreign.R = &beneficiaryR{}
-			}
-			foreign.R.Account = object
-		}
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if queries.Equal(local.ID, foreign.AccountID) {
-				local.R.Beneficiaries = append(local.R.Beneficiaries, foreign)
-				if foreign.R == nil {
-					foreign.R = &beneficiaryR{}
-				}
-				foreign.R.Account = local
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadCryptoAssets allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (accountL) LoadCryptoAssets(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
-	var slice []*Account
-	var object *Account
-
-	if singular {
-		object = maybeAccount.(*Account)
-	} else {
-		slice = *maybeAccount.(*[]*Account)
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &accountR{}
-		}
-		args = append(args, object.ID)
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &accountR{}
-			}
-
-			for _, a := range args {
-				if a == obj.ID {
-					continue Outer
-				}
-			}
-
-			args = append(args, obj.ID)
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(
-		qm.From(`crypto_asset`),
-		qm.WhereIn(`crypto_asset.account_id in ?`, args...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load crypto_asset")
-	}
-
-	var resultSlice []*CryptoAsset
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice crypto_asset")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on crypto_asset")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for crypto_asset")
-	}
-
-	if singular {
-		object.R.CryptoAssets = resultSlice
-		for _, foreign := range resultSlice {
-			if foreign.R == nil {
-				foreign.R = &cryptoAssetR{}
-			}
-			foreign.R.Account = object
-		}
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.AccountID {
-				local.R.CryptoAssets = append(local.R.CryptoAssets, foreign)
-				if foreign.R == nil {
-					foreign.R = &cryptoAssetR{}
-				}
-				foreign.R.Account = local
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadCryptoDeposits allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (accountL) LoadCryptoDeposits(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
-	var slice []*Account
-	var object *Account
-
-	if singular {
-		object = maybeAccount.(*Account)
-	} else {
-		slice = *maybeAccount.(*[]*Account)
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &accountR{}
-		}
-		args = append(args, object.ID)
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &accountR{}
-			}
-
-			for _, a := range args {
-				if a == obj.ID {
-					continue Outer
-				}
-			}
-
-			args = append(args, obj.ID)
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(
-		qm.From(`crypto_deposit`),
-		qm.WhereIn(`crypto_deposit.account_id in ?`, args...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load crypto_deposit")
-	}
-
-	var resultSlice []*CryptoDeposit
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice crypto_deposit")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on crypto_deposit")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for crypto_deposit")
-	}
-
-	if singular {
-		object.R.CryptoDeposits = resultSlice
-		for _, foreign := range resultSlice {
-			if foreign.R == nil {
-				foreign.R = &cryptoDepositR{}
-			}
-			foreign.R.Account = object
-		}
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.AccountID {
-				local.R.CryptoDeposits = append(local.R.CryptoDeposits, foreign)
-				if foreign.R == nil {
-					foreign.R = &cryptoDepositR{}
 				}
 				foreign.R.Account = local
 				break
@@ -1479,97 +912,6 @@ func (accountL) LoadDeposits(ctx context.Context, e boil.ContextExecutor, singul
 				local.R.Deposits = append(local.R.Deposits, foreign)
 				if foreign.R == nil {
 					foreign.R = &depositR{}
-				}
-				foreign.R.Account = local
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadDepositWallets allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (accountL) LoadDepositWallets(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
-	var slice []*Account
-	var object *Account
-
-	if singular {
-		object = maybeAccount.(*Account)
-	} else {
-		slice = *maybeAccount.(*[]*Account)
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &accountR{}
-		}
-		args = append(args, object.ID)
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &accountR{}
-			}
-
-			for _, a := range args {
-				if a == obj.ID {
-					continue Outer
-				}
-			}
-
-			args = append(args, obj.ID)
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(
-		qm.From(`deposit_wallet`),
-		qm.WhereIn(`deposit_wallet.account_id in ?`, args...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load deposit_wallet")
-	}
-
-	var resultSlice []*DepositWallet
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice deposit_wallet")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on deposit_wallet")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for deposit_wallet")
-	}
-
-	if singular {
-		object.R.DepositWallets = resultSlice
-		for _, foreign := range resultSlice {
-			if foreign.R == nil {
-				foreign.R = &depositWalletR{}
-			}
-			foreign.R.Account = object
-		}
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.AccountID {
-				local.R.DepositWallets = append(local.R.DepositWallets, foreign)
-				if foreign.R == nil {
-					foreign.R = &depositWalletR{}
 				}
 				foreign.R.Account = local
 				break
@@ -1853,97 +1195,6 @@ func (accountL) LoadNotifications(ctx context.Context, e boil.ContextExecutor, s
 	return nil
 }
 
-// LoadPaymentLinks allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (accountL) LoadPaymentLinks(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
-	var slice []*Account
-	var object *Account
-
-	if singular {
-		object = maybeAccount.(*Account)
-	} else {
-		slice = *maybeAccount.(*[]*Account)
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &accountR{}
-		}
-		args = append(args, object.ID)
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &accountR{}
-			}
-
-			for _, a := range args {
-				if queries.Equal(a, obj.ID) {
-					continue Outer
-				}
-			}
-
-			args = append(args, obj.ID)
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(
-		qm.From(`payment_link`),
-		qm.WhereIn(`payment_link.account_id in ?`, args...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load payment_link")
-	}
-
-	var resultSlice []*PaymentLink
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice payment_link")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on payment_link")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for payment_link")
-	}
-
-	if singular {
-		object.R.PaymentLinks = resultSlice
-		for _, foreign := range resultSlice {
-			if foreign.R == nil {
-				foreign.R = &paymentLinkR{}
-			}
-			foreign.R.Account = object
-		}
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if queries.Equal(local.ID, foreign.AccountID) {
-				local.R.PaymentLinks = append(local.R.PaymentLinks, foreign)
-				if foreign.R == nil {
-					foreign.R = &paymentLinkR{}
-				}
-				foreign.R.Account = local
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
 // LoadReferralPayouts allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
 func (accountL) LoadReferralPayouts(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
@@ -2209,552 +1460,6 @@ func (accountL) LoadSecurityCodes(ctx context.Context, e boil.ContextExecutor, s
 					foreign.R = &securityCodeR{}
 				}
 				foreign.R.Account = local
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadStableNairaTransactions allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (accountL) LoadStableNairaTransactions(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
-	var slice []*Account
-	var object *Account
-
-	if singular {
-		object = maybeAccount.(*Account)
-	} else {
-		slice = *maybeAccount.(*[]*Account)
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &accountR{}
-		}
-		args = append(args, object.ID)
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &accountR{}
-			}
-
-			for _, a := range args {
-				if a == obj.ID {
-					continue Outer
-				}
-			}
-
-			args = append(args, obj.ID)
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(
-		qm.From(`stable_naira_transaction`),
-		qm.WhereIn(`stable_naira_transaction.account_id in ?`, args...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load stable_naira_transaction")
-	}
-
-	var resultSlice []*StableNairaTransaction
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice stable_naira_transaction")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on stable_naira_transaction")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for stable_naira_transaction")
-	}
-
-	if singular {
-		object.R.StableNairaTransactions = resultSlice
-		for _, foreign := range resultSlice {
-			if foreign.R == nil {
-				foreign.R = &stableNairaTransactionR{}
-			}
-			foreign.R.Account = object
-		}
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.AccountID {
-				local.R.StableNairaTransactions = append(local.R.StableNairaTransactions, foreign)
-				if foreign.R == nil {
-					foreign.R = &stableNairaTransactionR{}
-				}
-				foreign.R.Account = local
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadSubscriptions allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (accountL) LoadSubscriptions(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
-	var slice []*Account
-	var object *Account
-
-	if singular {
-		object = maybeAccount.(*Account)
-	} else {
-		slice = *maybeAccount.(*[]*Account)
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &accountR{}
-		}
-		args = append(args, object.ID)
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &accountR{}
-			}
-
-			for _, a := range args {
-				if a == obj.ID {
-					continue Outer
-				}
-			}
-
-			args = append(args, obj.ID)
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(
-		qm.From(`subscription`),
-		qm.WhereIn(`subscription.account_id in ?`, args...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load subscription")
-	}
-
-	var resultSlice []*Subscription
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice subscription")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on subscription")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for subscription")
-	}
-
-	if singular {
-		object.R.Subscriptions = resultSlice
-		for _, foreign := range resultSlice {
-			if foreign.R == nil {
-				foreign.R = &subscriptionR{}
-			}
-			foreign.R.Account = object
-		}
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.AccountID {
-				local.R.Subscriptions = append(local.R.Subscriptions, foreign)
-				if foreign.R == nil {
-					foreign.R = &subscriptionR{}
-				}
-				foreign.R.Account = local
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadTrades allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (accountL) LoadTrades(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
-	var slice []*Account
-	var object *Account
-
-	if singular {
-		object = maybeAccount.(*Account)
-	} else {
-		slice = *maybeAccount.(*[]*Account)
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &accountR{}
-		}
-		args = append(args, object.ID)
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &accountR{}
-			}
-
-			for _, a := range args {
-				if a == obj.ID {
-					continue Outer
-				}
-			}
-
-			args = append(args, obj.ID)
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(
-		qm.From(`trade`),
-		qm.WhereIn(`trade.account_id in ?`, args...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load trade")
-	}
-
-	var resultSlice []*Trade
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice trade")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on trade")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for trade")
-	}
-
-	if singular {
-		object.R.Trades = resultSlice
-		for _, foreign := range resultSlice {
-			if foreign.R == nil {
-				foreign.R = &tradeR{}
-			}
-			foreign.R.Account = object
-		}
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.AccountID {
-				local.R.Trades = append(local.R.Trades, foreign)
-				if foreign.R == nil {
-					foreign.R = &tradeR{}
-				}
-				foreign.R.Account = local
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadTradeSchedules allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (accountL) LoadTradeSchedules(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
-	var slice []*Account
-	var object *Account
-
-	if singular {
-		object = maybeAccount.(*Account)
-	} else {
-		slice = *maybeAccount.(*[]*Account)
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &accountR{}
-		}
-		args = append(args, object.ID)
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &accountR{}
-			}
-
-			for _, a := range args {
-				if a == obj.ID {
-					continue Outer
-				}
-			}
-
-			args = append(args, obj.ID)
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(
-		qm.From(`trade_schedule`),
-		qm.WhereIn(`trade_schedule.account_id in ?`, args...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load trade_schedule")
-	}
-
-	var resultSlice []*TradeSchedule
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice trade_schedule")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on trade_schedule")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for trade_schedule")
-	}
-
-	if singular {
-		object.R.TradeSchedules = resultSlice
-		for _, foreign := range resultSlice {
-			if foreign.R == nil {
-				foreign.R = &tradeScheduleR{}
-			}
-			foreign.R.Account = object
-		}
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.AccountID {
-				local.R.TradeSchedules = append(local.R.TradeSchedules, foreign)
-				if foreign.R == nil {
-					foreign.R = &tradeScheduleR{}
-				}
-				foreign.R.Account = local
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadReceiverTransfers allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (accountL) LoadReceiverTransfers(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
-	var slice []*Account
-	var object *Account
-
-	if singular {
-		object = maybeAccount.(*Account)
-	} else {
-		slice = *maybeAccount.(*[]*Account)
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &accountR{}
-		}
-		args = append(args, object.ID)
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &accountR{}
-			}
-
-			for _, a := range args {
-				if a == obj.ID {
-					continue Outer
-				}
-			}
-
-			args = append(args, obj.ID)
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(
-		qm.From(`transfer`),
-		qm.WhereIn(`transfer.receiver_id in ?`, args...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load transfer")
-	}
-
-	var resultSlice []*Transfer
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice transfer")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on transfer")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for transfer")
-	}
-
-	if singular {
-		object.R.ReceiverTransfers = resultSlice
-		for _, foreign := range resultSlice {
-			if foreign.R == nil {
-				foreign.R = &transferR{}
-			}
-			foreign.R.Receiver = object
-		}
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.ReceiverID {
-				local.R.ReceiverTransfers = append(local.R.ReceiverTransfers, foreign)
-				if foreign.R == nil {
-					foreign.R = &transferR{}
-				}
-				foreign.R.Receiver = local
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadSenderTransfers allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (accountL) LoadSenderTransfers(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
-	var slice []*Account
-	var object *Account
-
-	if singular {
-		object = maybeAccount.(*Account)
-	} else {
-		slice = *maybeAccount.(*[]*Account)
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &accountR{}
-		}
-		args = append(args, object.ID)
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &accountR{}
-			}
-
-			for _, a := range args {
-				if a == obj.ID {
-					continue Outer
-				}
-			}
-
-			args = append(args, obj.ID)
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(
-		qm.From(`transfer`),
-		qm.WhereIn(`transfer.sender_id in ?`, args...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load transfer")
-	}
-
-	var resultSlice []*Transfer
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice transfer")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on transfer")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for transfer")
-	}
-
-	if singular {
-		object.R.SenderTransfers = resultSlice
-		for _, foreign := range resultSlice {
-			if foreign.R == nil {
-				foreign.R = &transferR{}
-			}
-			foreign.R.Sender = object
-		}
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.SenderID {
-				local.R.SenderTransfers = append(local.R.SenderTransfers, foreign)
-				if foreign.R == nil {
-					foreign.R = &transferR{}
-				}
-				foreign.R.Sender = local
 				break
 			}
 		}
@@ -3089,239 +1794,6 @@ func (o *Account) AddAccountTransactions(ctx context.Context, exec boil.ContextE
 	return nil
 }
 
-// AddBeneficiaries adds the given related objects to the existing relationships
-// of the account, optionally inserting them as new records.
-// Appends related to o.R.Beneficiaries.
-// Sets related.R.Account appropriately.
-func (o *Account) AddBeneficiaries(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Beneficiary) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			queries.Assign(&rel.AccountID, o.ID)
-			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"beneficiary\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"account_id"}),
-				strmangle.WhereClause("\"", "\"", 2, beneficiaryPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.ID}
-
-			if boil.IsDebug(ctx) {
-				writer := boil.DebugWriterFrom(ctx)
-				fmt.Fprintln(writer, updateQuery)
-				fmt.Fprintln(writer, values)
-			}
-			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			queries.Assign(&rel.AccountID, o.ID)
-		}
-	}
-
-	if o.R == nil {
-		o.R = &accountR{
-			Beneficiaries: related,
-		}
-	} else {
-		o.R.Beneficiaries = append(o.R.Beneficiaries, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &beneficiaryR{
-				Account: o,
-			}
-		} else {
-			rel.R.Account = o
-		}
-	}
-	return nil
-}
-
-// SetBeneficiaries removes all previously related items of the
-// account replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.Account's Beneficiaries accordingly.
-// Replaces o.R.Beneficiaries with related.
-// Sets related.R.Account's Beneficiaries accordingly.
-func (o *Account) SetBeneficiaries(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Beneficiary) error {
-	query := "update \"beneficiary\" set \"account_id\" = null where \"account_id\" = $1"
-	values := []interface{}{o.ID}
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, query)
-		fmt.Fprintln(writer, values)
-	}
-	_, err := exec.ExecContext(ctx, query, values...)
-	if err != nil {
-		return errors.Wrap(err, "failed to remove relationships before set")
-	}
-
-	if o.R != nil {
-		for _, rel := range o.R.Beneficiaries {
-			queries.SetScanner(&rel.AccountID, nil)
-			if rel.R == nil {
-				continue
-			}
-
-			rel.R.Account = nil
-		}
-
-		o.R.Beneficiaries = nil
-	}
-	return o.AddBeneficiaries(ctx, exec, insert, related...)
-}
-
-// RemoveBeneficiaries relationships from objects passed in.
-// Removes related items from R.Beneficiaries (uses pointer comparison, removal does not keep order)
-// Sets related.R.Account.
-func (o *Account) RemoveBeneficiaries(ctx context.Context, exec boil.ContextExecutor, related ...*Beneficiary) error {
-	if len(related) == 0 {
-		return nil
-	}
-
-	var err error
-	for _, rel := range related {
-		queries.SetScanner(&rel.AccountID, nil)
-		if rel.R != nil {
-			rel.R.Account = nil
-		}
-		if _, err = rel.Update(ctx, exec, boil.Whitelist("account_id")); err != nil {
-			return err
-		}
-	}
-	if o.R == nil {
-		return nil
-	}
-
-	for _, rel := range related {
-		for i, ri := range o.R.Beneficiaries {
-			if rel != ri {
-				continue
-			}
-
-			ln := len(o.R.Beneficiaries)
-			if ln > 1 && i < ln-1 {
-				o.R.Beneficiaries[i] = o.R.Beneficiaries[ln-1]
-			}
-			o.R.Beneficiaries = o.R.Beneficiaries[:ln-1]
-			break
-		}
-	}
-
-	return nil
-}
-
-// AddCryptoAssets adds the given related objects to the existing relationships
-// of the account, optionally inserting them as new records.
-// Appends related to o.R.CryptoAssets.
-// Sets related.R.Account appropriately.
-func (o *Account) AddCryptoAssets(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*CryptoAsset) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.AccountID = o.ID
-			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"crypto_asset\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"account_id"}),
-				strmangle.WhereClause("\"", "\"", 2, cryptoAssetPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.ID}
-
-			if boil.IsDebug(ctx) {
-				writer := boil.DebugWriterFrom(ctx)
-				fmt.Fprintln(writer, updateQuery)
-				fmt.Fprintln(writer, values)
-			}
-			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.AccountID = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &accountR{
-			CryptoAssets: related,
-		}
-	} else {
-		o.R.CryptoAssets = append(o.R.CryptoAssets, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &cryptoAssetR{
-				Account: o,
-			}
-		} else {
-			rel.R.Account = o
-		}
-	}
-	return nil
-}
-
-// AddCryptoDeposits adds the given related objects to the existing relationships
-// of the account, optionally inserting them as new records.
-// Appends related to o.R.CryptoDeposits.
-// Sets related.R.Account appropriately.
-func (o *Account) AddCryptoDeposits(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*CryptoDeposit) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.AccountID = o.ID
-			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"crypto_deposit\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"account_id"}),
-				strmangle.WhereClause("\"", "\"", 2, cryptoDepositPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.TransactionHash}
-
-			if boil.IsDebug(ctx) {
-				writer := boil.DebugWriterFrom(ctx)
-				fmt.Fprintln(writer, updateQuery)
-				fmt.Fprintln(writer, values)
-			}
-			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.AccountID = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &accountR{
-			CryptoDeposits: related,
-		}
-	} else {
-		o.R.CryptoDeposits = append(o.R.CryptoDeposits, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &cryptoDepositR{
-				Account: o,
-			}
-		} else {
-			rel.R.Account = o
-		}
-	}
-	return nil
-}
-
 // AddDailyEarnings adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
 // Appends related to o.R.DailyEarnings.
@@ -3419,59 +1891,6 @@ func (o *Account) AddDeposits(ctx context.Context, exec boil.ContextExecutor, in
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &depositR{
-				Account: o,
-			}
-		} else {
-			rel.R.Account = o
-		}
-	}
-	return nil
-}
-
-// AddDepositWallets adds the given related objects to the existing relationships
-// of the account, optionally inserting them as new records.
-// Appends related to o.R.DepositWallets.
-// Sets related.R.Account appropriately.
-func (o *Account) AddDepositWallets(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*DepositWallet) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.AccountID = o.ID
-			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"deposit_wallet\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"account_id"}),
-				strmangle.WhereClause("\"", "\"", 2, depositWalletPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.Address}
-
-			if boil.IsDebug(ctx) {
-				writer := boil.DebugWriterFrom(ctx)
-				fmt.Fprintln(writer, updateQuery)
-				fmt.Fprintln(writer, values)
-			}
-			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.AccountID = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &accountR{
-			DepositWallets: related,
-		}
-	} else {
-		o.R.DepositWallets = append(o.R.DepositWallets, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &depositWalletR{
 				Account: o,
 			}
 		} else {
@@ -3640,133 +2059,6 @@ func (o *Account) AddNotifications(ctx context.Context, exec boil.ContextExecuto
 	return nil
 }
 
-// AddPaymentLinks adds the given related objects to the existing relationships
-// of the account, optionally inserting them as new records.
-// Appends related to o.R.PaymentLinks.
-// Sets related.R.Account appropriately.
-func (o *Account) AddPaymentLinks(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*PaymentLink) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			queries.Assign(&rel.AccountID, o.ID)
-			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"payment_link\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"account_id"}),
-				strmangle.WhereClause("\"", "\"", 2, paymentLinkPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.Permalink}
-
-			if boil.IsDebug(ctx) {
-				writer := boil.DebugWriterFrom(ctx)
-				fmt.Fprintln(writer, updateQuery)
-				fmt.Fprintln(writer, values)
-			}
-			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			queries.Assign(&rel.AccountID, o.ID)
-		}
-	}
-
-	if o.R == nil {
-		o.R = &accountR{
-			PaymentLinks: related,
-		}
-	} else {
-		o.R.PaymentLinks = append(o.R.PaymentLinks, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &paymentLinkR{
-				Account: o,
-			}
-		} else {
-			rel.R.Account = o
-		}
-	}
-	return nil
-}
-
-// SetPaymentLinks removes all previously related items of the
-// account replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.Account's PaymentLinks accordingly.
-// Replaces o.R.PaymentLinks with related.
-// Sets related.R.Account's PaymentLinks accordingly.
-func (o *Account) SetPaymentLinks(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*PaymentLink) error {
-	query := "update \"payment_link\" set \"account_id\" = null where \"account_id\" = $1"
-	values := []interface{}{o.ID}
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, query)
-		fmt.Fprintln(writer, values)
-	}
-	_, err := exec.ExecContext(ctx, query, values...)
-	if err != nil {
-		return errors.Wrap(err, "failed to remove relationships before set")
-	}
-
-	if o.R != nil {
-		for _, rel := range o.R.PaymentLinks {
-			queries.SetScanner(&rel.AccountID, nil)
-			if rel.R == nil {
-				continue
-			}
-
-			rel.R.Account = nil
-		}
-
-		o.R.PaymentLinks = nil
-	}
-	return o.AddPaymentLinks(ctx, exec, insert, related...)
-}
-
-// RemovePaymentLinks relationships from objects passed in.
-// Removes related items from R.PaymentLinks (uses pointer comparison, removal does not keep order)
-// Sets related.R.Account.
-func (o *Account) RemovePaymentLinks(ctx context.Context, exec boil.ContextExecutor, related ...*PaymentLink) error {
-	if len(related) == 0 {
-		return nil
-	}
-
-	var err error
-	for _, rel := range related {
-		queries.SetScanner(&rel.AccountID, nil)
-		if rel.R != nil {
-			rel.R.Account = nil
-		}
-		if _, err = rel.Update(ctx, exec, boil.Whitelist("account_id")); err != nil {
-			return err
-		}
-	}
-	if o.R == nil {
-		return nil
-	}
-
-	for _, rel := range related {
-		for i, ri := range o.R.PaymentLinks {
-			if rel != ri {
-				continue
-			}
-
-			ln := len(o.R.PaymentLinks)
-			if ln > 1 && i < ln-1 {
-				o.R.PaymentLinks[i] = o.R.PaymentLinks[ln-1]
-			}
-			o.R.PaymentLinks = o.R.PaymentLinks[:ln-1]
-			break
-		}
-	}
-
-	return nil
-}
-
 // AddReferralPayouts adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
 // Appends related to o.R.ReferralPayouts.
@@ -3921,324 +2213,6 @@ func (o *Account) AddSecurityCodes(ctx context.Context, exec boil.ContextExecuto
 			}
 		} else {
 			rel.R.Account = o
-		}
-	}
-	return nil
-}
-
-// AddStableNairaTransactions adds the given related objects to the existing relationships
-// of the account, optionally inserting them as new records.
-// Appends related to o.R.StableNairaTransactions.
-// Sets related.R.Account appropriately.
-func (o *Account) AddStableNairaTransactions(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*StableNairaTransaction) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.AccountID = o.ID
-			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"stable_naira_transaction\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"account_id"}),
-				strmangle.WhereClause("\"", "\"", 2, stableNairaTransactionPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.ID}
-
-			if boil.IsDebug(ctx) {
-				writer := boil.DebugWriterFrom(ctx)
-				fmt.Fprintln(writer, updateQuery)
-				fmt.Fprintln(writer, values)
-			}
-			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.AccountID = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &accountR{
-			StableNairaTransactions: related,
-		}
-	} else {
-		o.R.StableNairaTransactions = append(o.R.StableNairaTransactions, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &stableNairaTransactionR{
-				Account: o,
-			}
-		} else {
-			rel.R.Account = o
-		}
-	}
-	return nil
-}
-
-// AddSubscriptions adds the given related objects to the existing relationships
-// of the account, optionally inserting them as new records.
-// Appends related to o.R.Subscriptions.
-// Sets related.R.Account appropriately.
-func (o *Account) AddSubscriptions(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Subscription) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.AccountID = o.ID
-			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"subscription\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"account_id"}),
-				strmangle.WhereClause("\"", "\"", 2, subscriptionPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.ID}
-
-			if boil.IsDebug(ctx) {
-				writer := boil.DebugWriterFrom(ctx)
-				fmt.Fprintln(writer, updateQuery)
-				fmt.Fprintln(writer, values)
-			}
-			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.AccountID = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &accountR{
-			Subscriptions: related,
-		}
-	} else {
-		o.R.Subscriptions = append(o.R.Subscriptions, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &subscriptionR{
-				Account: o,
-			}
-		} else {
-			rel.R.Account = o
-		}
-	}
-	return nil
-}
-
-// AddTrades adds the given related objects to the existing relationships
-// of the account, optionally inserting them as new records.
-// Appends related to o.R.Trades.
-// Sets related.R.Account appropriately.
-func (o *Account) AddTrades(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Trade) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.AccountID = o.ID
-			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"trade\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"account_id"}),
-				strmangle.WhereClause("\"", "\"", 2, tradePrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.ID}
-
-			if boil.IsDebug(ctx) {
-				writer := boil.DebugWriterFrom(ctx)
-				fmt.Fprintln(writer, updateQuery)
-				fmt.Fprintln(writer, values)
-			}
-			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.AccountID = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &accountR{
-			Trades: related,
-		}
-	} else {
-		o.R.Trades = append(o.R.Trades, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &tradeR{
-				Account: o,
-			}
-		} else {
-			rel.R.Account = o
-		}
-	}
-	return nil
-}
-
-// AddTradeSchedules adds the given related objects to the existing relationships
-// of the account, optionally inserting them as new records.
-// Appends related to o.R.TradeSchedules.
-// Sets related.R.Account appropriately.
-func (o *Account) AddTradeSchedules(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*TradeSchedule) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.AccountID = o.ID
-			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"trade_schedule\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"account_id"}),
-				strmangle.WhereClause("\"", "\"", 2, tradeSchedulePrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.ID}
-
-			if boil.IsDebug(ctx) {
-				writer := boil.DebugWriterFrom(ctx)
-				fmt.Fprintln(writer, updateQuery)
-				fmt.Fprintln(writer, values)
-			}
-			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.AccountID = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &accountR{
-			TradeSchedules: related,
-		}
-	} else {
-		o.R.TradeSchedules = append(o.R.TradeSchedules, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &tradeScheduleR{
-				Account: o,
-			}
-		} else {
-			rel.R.Account = o
-		}
-	}
-	return nil
-}
-
-// AddReceiverTransfers adds the given related objects to the existing relationships
-// of the account, optionally inserting them as new records.
-// Appends related to o.R.ReceiverTransfers.
-// Sets related.R.Receiver appropriately.
-func (o *Account) AddReceiverTransfers(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Transfer) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.ReceiverID = o.ID
-			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"transfer\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"receiver_id"}),
-				strmangle.WhereClause("\"", "\"", 2, transferPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.ID}
-
-			if boil.IsDebug(ctx) {
-				writer := boil.DebugWriterFrom(ctx)
-				fmt.Fprintln(writer, updateQuery)
-				fmt.Fprintln(writer, values)
-			}
-			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.ReceiverID = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &accountR{
-			ReceiverTransfers: related,
-		}
-	} else {
-		o.R.ReceiverTransfers = append(o.R.ReceiverTransfers, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &transferR{
-				Receiver: o,
-			}
-		} else {
-			rel.R.Receiver = o
-		}
-	}
-	return nil
-}
-
-// AddSenderTransfers adds the given related objects to the existing relationships
-// of the account, optionally inserting them as new records.
-// Appends related to o.R.SenderTransfers.
-// Sets related.R.Sender appropriately.
-func (o *Account) AddSenderTransfers(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Transfer) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.SenderID = o.ID
-			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"transfer\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"sender_id"}),
-				strmangle.WhereClause("\"", "\"", 2, transferPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.ID}
-
-			if boil.IsDebug(ctx) {
-				writer := boil.DebugWriterFrom(ctx)
-				fmt.Fprintln(writer, updateQuery)
-				fmt.Fprintln(writer, values)
-			}
-			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.SenderID = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &accountR{
-			SenderTransfers: related,
-		}
-	} else {
-		o.R.SenderTransfers = append(o.R.SenderTransfers, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &transferR{
-				Sender: o,
-			}
-		} else {
-			rel.R.Sender = o
 		}
 	}
 	return nil

@@ -3,8 +3,8 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"deficonnect/go-api-starter/app"
-	"deficonnect/go-api-starter/postgres/models"
+	"deficonnect/sonicflare/app"
+	"deficonnect/sonicflare/postgres/models"
 	"fmt"
 	"time"
 

@@ -1,7 +1,7 @@
 package app
 
 import (
-	"deficonnect/go-api-starter/web"
+	"deficonnect/sonicflare/web"
 	"encoding/json"
 	"net/http"
 	"strconv"

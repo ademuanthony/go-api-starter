@@ -79,14 +79,17 @@ var DepositWhere = struct {
 
 // DepositRels is where relationship names are stored.
 var DepositRels = struct {
-	Account string
+	Account         string
+	ReferralPayouts string
 }{
-	Account: "Account",
+	Account:         "Account",
+	ReferralPayouts: "ReferralPayouts",
 }
 
 // depositR is where relationships are stored.
 type depositR struct {
-	Account *Account `boil:"Account" json:"Account" toml:"Account" yaml:"Account"`
+	Account         *Account            `boil:"Account" json:"Account" toml:"Account" yaml:"Account"`
+	ReferralPayouts ReferralPayoutSlice `boil:"ReferralPayouts" json:"ReferralPayouts" toml:"ReferralPayouts" yaml:"ReferralPayouts"`
 }
 
 // NewStruct creates a new relationship struct
@@ -209,6 +212,27 @@ func (o *Deposit) Account(mods ...qm.QueryMod) accountQuery {
 	return query
 }
 
+// ReferralPayouts retrieves all the referral_payout's ReferralPayouts with an executor.
+func (o *Deposit) ReferralPayouts(mods ...qm.QueryMod) referralPayoutQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"referral_payout\".\"deposit_id\"=?", o.ID),
+	)
+
+	query := ReferralPayouts(queryMods...)
+	queries.SetFrom(query.Query, "\"referral_payout\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"referral_payout\".*"})
+	}
+
+	return query
+}
+
 // LoadAccount allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for an N-1 relationship.
 func (depositL) LoadAccount(ctx context.Context, e boil.ContextExecutor, singular bool, maybeDeposit interface{}, mods queries.Applicator) error {
@@ -305,6 +329,97 @@ func (depositL) LoadAccount(ctx context.Context, e boil.ContextExecutor, singula
 	return nil
 }
 
+// LoadReferralPayouts allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (depositL) LoadReferralPayouts(ctx context.Context, e boil.ContextExecutor, singular bool, maybeDeposit interface{}, mods queries.Applicator) error {
+	var slice []*Deposit
+	var object *Deposit
+
+	if singular {
+		object = maybeDeposit.(*Deposit)
+	} else {
+		slice = *maybeDeposit.(*[]*Deposit)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &depositR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &depositR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`referral_payout`),
+		qm.WhereIn(`referral_payout.deposit_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load referral_payout")
+	}
+
+	var resultSlice []*ReferralPayout
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice referral_payout")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on referral_payout")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for referral_payout")
+	}
+
+	if singular {
+		object.R.ReferralPayouts = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &referralPayoutR{}
+			}
+			foreign.R.Deposit = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.DepositID {
+				local.R.ReferralPayouts = append(local.R.ReferralPayouts, foreign)
+				if foreign.R == nil {
+					foreign.R = &referralPayoutR{}
+				}
+				foreign.R.Deposit = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // SetAccount of the deposit to the related item.
 // Sets o.R.Account to related.
 // Adds o to related.R.Deposits.
@@ -349,6 +464,59 @@ func (o *Deposit) SetAccount(ctx context.Context, exec boil.ContextExecutor, ins
 		related.R.Deposits = append(related.R.Deposits, o)
 	}
 
+	return nil
+}
+
+// AddReferralPayouts adds the given related objects to the existing relationships
+// of the deposit, optionally inserting them as new records.
+// Appends related to o.R.ReferralPayouts.
+// Sets related.R.Deposit appropriately.
+func (o *Deposit) AddReferralPayouts(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*ReferralPayout) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.DepositID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"referral_payout\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"deposit_id"}),
+				strmangle.WhereClause("\"", "\"", 2, referralPayoutPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.DepositID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &depositR{
+			ReferralPayouts: related,
+		}
+	} else {
+		o.R.ReferralPayouts = append(o.R.ReferralPayouts, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &referralPayoutR{
+				Deposit: o,
+			}
+		} else {
+			rel.R.Deposit = o
+		}
+	}
 	return nil
 }
 

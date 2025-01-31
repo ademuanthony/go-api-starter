@@ -23,111 +23,111 @@ import (
 
 // ReferralPayout is an object representing the database table.
 type ReferralPayout struct {
-	ID             string `boil:"id" json:"id" toml:"id" yaml:"id"`
-	AccountID      string `boil:"account_id" json:"account_id" toml:"account_id" yaml:"account_id"`
-	FromAccountID  string `boil:"from_account_id" json:"from_account_id" toml:"from_account_id" yaml:"from_account_id"`
-	SubscriptionID string `boil:"subscription_id" json:"subscription_id" toml:"subscription_id" yaml:"subscription_id"`
-	Generation     int    `boil:"generation" json:"generation" toml:"generation" yaml:"generation"`
-	Amount         int64  `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
-	Date           int64  `boil:"date" json:"date" toml:"date" yaml:"date"`
-	PaymentMethod  int    `boil:"payment_method" json:"payment_method" toml:"payment_method" yaml:"payment_method"`
-	PaymentStatus  int    `boil:"payment_status" json:"payment_status" toml:"payment_status" yaml:"payment_status"`
-	PaymentRef     string `boil:"payment_ref" json:"payment_ref" toml:"payment_ref" yaml:"payment_ref"`
+	ID            string `boil:"id" json:"id" toml:"id" yaml:"id"`
+	AccountID     string `boil:"account_id" json:"account_id" toml:"account_id" yaml:"account_id"`
+	FromAccountID string `boil:"from_account_id" json:"from_account_id" toml:"from_account_id" yaml:"from_account_id"`
+	DepositID     string `boil:"deposit_id" json:"deposit_id" toml:"deposit_id" yaml:"deposit_id"`
+	Generation    int    `boil:"generation" json:"generation" toml:"generation" yaml:"generation"`
+	Amount        int64  `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
+	Date          int64  `boil:"date" json:"date" toml:"date" yaml:"date"`
+	PaymentMethod int    `boil:"payment_method" json:"payment_method" toml:"payment_method" yaml:"payment_method"`
+	PaymentStatus int    `boil:"payment_status" json:"payment_status" toml:"payment_status" yaml:"payment_status"`
+	PaymentRef    string `boil:"payment_ref" json:"payment_ref" toml:"payment_ref" yaml:"payment_ref"`
 
 	R *referralPayoutR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L referralPayoutL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var ReferralPayoutColumns = struct {
-	ID             string
-	AccountID      string
-	FromAccountID  string
-	SubscriptionID string
-	Generation     string
-	Amount         string
-	Date           string
-	PaymentMethod  string
-	PaymentStatus  string
-	PaymentRef     string
+	ID            string
+	AccountID     string
+	FromAccountID string
+	DepositID     string
+	Generation    string
+	Amount        string
+	Date          string
+	PaymentMethod string
+	PaymentStatus string
+	PaymentRef    string
 }{
-	ID:             "id",
-	AccountID:      "account_id",
-	FromAccountID:  "from_account_id",
-	SubscriptionID: "subscription_id",
-	Generation:     "generation",
-	Amount:         "amount",
-	Date:           "date",
-	PaymentMethod:  "payment_method",
-	PaymentStatus:  "payment_status",
-	PaymentRef:     "payment_ref",
+	ID:            "id",
+	AccountID:     "account_id",
+	FromAccountID: "from_account_id",
+	DepositID:     "deposit_id",
+	Generation:    "generation",
+	Amount:        "amount",
+	Date:          "date",
+	PaymentMethod: "payment_method",
+	PaymentStatus: "payment_status",
+	PaymentRef:    "payment_ref",
 }
 
 var ReferralPayoutTableColumns = struct {
-	ID             string
-	AccountID      string
-	FromAccountID  string
-	SubscriptionID string
-	Generation     string
-	Amount         string
-	Date           string
-	PaymentMethod  string
-	PaymentStatus  string
-	PaymentRef     string
+	ID            string
+	AccountID     string
+	FromAccountID string
+	DepositID     string
+	Generation    string
+	Amount        string
+	Date          string
+	PaymentMethod string
+	PaymentStatus string
+	PaymentRef    string
 }{
-	ID:             "referral_payout.id",
-	AccountID:      "referral_payout.account_id",
-	FromAccountID:  "referral_payout.from_account_id",
-	SubscriptionID: "referral_payout.subscription_id",
-	Generation:     "referral_payout.generation",
-	Amount:         "referral_payout.amount",
-	Date:           "referral_payout.date",
-	PaymentMethod:  "referral_payout.payment_method",
-	PaymentStatus:  "referral_payout.payment_status",
-	PaymentRef:     "referral_payout.payment_ref",
+	ID:            "referral_payout.id",
+	AccountID:     "referral_payout.account_id",
+	FromAccountID: "referral_payout.from_account_id",
+	DepositID:     "referral_payout.deposit_id",
+	Generation:    "referral_payout.generation",
+	Amount:        "referral_payout.amount",
+	Date:          "referral_payout.date",
+	PaymentMethod: "referral_payout.payment_method",
+	PaymentStatus: "referral_payout.payment_status",
+	PaymentRef:    "referral_payout.payment_ref",
 }
 
 // Generated where
 
 var ReferralPayoutWhere = struct {
-	ID             whereHelperstring
-	AccountID      whereHelperstring
-	FromAccountID  whereHelperstring
-	SubscriptionID whereHelperstring
-	Generation     whereHelperint
-	Amount         whereHelperint64
-	Date           whereHelperint64
-	PaymentMethod  whereHelperint
-	PaymentStatus  whereHelperint
-	PaymentRef     whereHelperstring
+	ID            whereHelperstring
+	AccountID     whereHelperstring
+	FromAccountID whereHelperstring
+	DepositID     whereHelperstring
+	Generation    whereHelperint
+	Amount        whereHelperint64
+	Date          whereHelperint64
+	PaymentMethod whereHelperint
+	PaymentStatus whereHelperint
+	PaymentRef    whereHelperstring
 }{
-	ID:             whereHelperstring{field: "\"referral_payout\".\"id\""},
-	AccountID:      whereHelperstring{field: "\"referral_payout\".\"account_id\""},
-	FromAccountID:  whereHelperstring{field: "\"referral_payout\".\"from_account_id\""},
-	SubscriptionID: whereHelperstring{field: "\"referral_payout\".\"subscription_id\""},
-	Generation:     whereHelperint{field: "\"referral_payout\".\"generation\""},
-	Amount:         whereHelperint64{field: "\"referral_payout\".\"amount\""},
-	Date:           whereHelperint64{field: "\"referral_payout\".\"date\""},
-	PaymentMethod:  whereHelperint{field: "\"referral_payout\".\"payment_method\""},
-	PaymentStatus:  whereHelperint{field: "\"referral_payout\".\"payment_status\""},
-	PaymentRef:     whereHelperstring{field: "\"referral_payout\".\"payment_ref\""},
+	ID:            whereHelperstring{field: "\"referral_payout\".\"id\""},
+	AccountID:     whereHelperstring{field: "\"referral_payout\".\"account_id\""},
+	FromAccountID: whereHelperstring{field: "\"referral_payout\".\"from_account_id\""},
+	DepositID:     whereHelperstring{field: "\"referral_payout\".\"deposit_id\""},
+	Generation:    whereHelperint{field: "\"referral_payout\".\"generation\""},
+	Amount:        whereHelperint64{field: "\"referral_payout\".\"amount\""},
+	Date:          whereHelperint64{field: "\"referral_payout\".\"date\""},
+	PaymentMethod: whereHelperint{field: "\"referral_payout\".\"payment_method\""},
+	PaymentStatus: whereHelperint{field: "\"referral_payout\".\"payment_status\""},
+	PaymentRef:    whereHelperstring{field: "\"referral_payout\".\"payment_ref\""},
 }
 
 // ReferralPayoutRels is where relationship names are stored.
 var ReferralPayoutRels = struct {
-	Account      string
-	FromAccount  string
-	Subscription string
+	Account     string
+	Deposit     string
+	FromAccount string
 }{
-	Account:      "Account",
-	FromAccount:  "FromAccount",
-	Subscription: "Subscription",
+	Account:     "Account",
+	Deposit:     "Deposit",
+	FromAccount: "FromAccount",
 }
 
 // referralPayoutR is where relationships are stored.
 type referralPayoutR struct {
-	Account      *Account      `boil:"Account" json:"Account" toml:"Account" yaml:"Account"`
-	FromAccount  *Account      `boil:"FromAccount" json:"FromAccount" toml:"FromAccount" yaml:"FromAccount"`
-	Subscription *Subscription `boil:"Subscription" json:"Subscription" toml:"Subscription" yaml:"Subscription"`
+	Account     *Account `boil:"Account" json:"Account" toml:"Account" yaml:"Account"`
+	Deposit     *Deposit `boil:"Deposit" json:"Deposit" toml:"Deposit" yaml:"Deposit"`
+	FromAccount *Account `boil:"FromAccount" json:"FromAccount" toml:"FromAccount" yaml:"FromAccount"`
 }
 
 // NewStruct creates a new relationship struct
@@ -139,8 +139,8 @@ func (*referralPayoutR) NewStruct() *referralPayoutR {
 type referralPayoutL struct{}
 
 var (
-	referralPayoutAllColumns            = []string{"id", "account_id", "from_account_id", "subscription_id", "generation", "amount", "date", "payment_method", "payment_status", "payment_ref"}
-	referralPayoutColumnsWithoutDefault = []string{"id", "account_id", "from_account_id", "subscription_id", "generation", "amount", "date", "payment_method", "payment_status", "payment_ref"}
+	referralPayoutAllColumns            = []string{"id", "account_id", "from_account_id", "deposit_id", "generation", "amount", "date", "payment_method", "payment_status", "payment_ref"}
+	referralPayoutColumnsWithoutDefault = []string{"id", "account_id", "from_account_id", "deposit_id", "generation", "amount", "date", "payment_method", "payment_status", "payment_ref"}
 	referralPayoutColumnsWithDefault    = []string{}
 	referralPayoutPrimaryKeyColumns     = []string{"id"}
 )
@@ -250,6 +250,20 @@ func (o *ReferralPayout) Account(mods ...qm.QueryMod) accountQuery {
 	return query
 }
 
+// Deposit pointed to by the foreign key.
+func (o *ReferralPayout) Deposit(mods ...qm.QueryMod) depositQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.DepositID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	query := Deposits(queryMods...)
+	queries.SetFrom(query.Query, "\"deposit\"")
+
+	return query
+}
+
 // FromAccount pointed to by the foreign key.
 func (o *ReferralPayout) FromAccount(mods ...qm.QueryMod) accountQuery {
 	queryMods := []qm.QueryMod{
@@ -260,20 +274,6 @@ func (o *ReferralPayout) FromAccount(mods ...qm.QueryMod) accountQuery {
 
 	query := Accounts(queryMods...)
 	queries.SetFrom(query.Query, "\"account\"")
-
-	return query
-}
-
-// Subscription pointed to by the foreign key.
-func (o *ReferralPayout) Subscription(mods ...qm.QueryMod) subscriptionQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("\"id\" = ?", o.SubscriptionID),
-	}
-
-	queryMods = append(queryMods, mods...)
-
-	query := Subscriptions(queryMods...)
-	queries.SetFrom(query.Query, "\"subscription\"")
 
 	return query
 }
@@ -364,6 +364,102 @@ func (referralPayoutL) LoadAccount(ctx context.Context, e boil.ContextExecutor, 
 				local.R.Account = foreign
 				if foreign.R == nil {
 					foreign.R = &accountR{}
+				}
+				foreign.R.ReferralPayouts = append(foreign.R.ReferralPayouts, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadDeposit allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (referralPayoutL) LoadDeposit(ctx context.Context, e boil.ContextExecutor, singular bool, maybeReferralPayout interface{}, mods queries.Applicator) error {
+	var slice []*ReferralPayout
+	var object *ReferralPayout
+
+	if singular {
+		object = maybeReferralPayout.(*ReferralPayout)
+	} else {
+		slice = *maybeReferralPayout.(*[]*ReferralPayout)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &referralPayoutR{}
+		}
+		args = append(args, object.DepositID)
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &referralPayoutR{}
+			}
+
+			for _, a := range args {
+				if a == obj.DepositID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.DepositID)
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`deposit`),
+		qm.WhereIn(`deposit.id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load Deposit")
+	}
+
+	var resultSlice []*Deposit
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice Deposit")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for deposit")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for deposit")
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.Deposit = foreign
+		if foreign.R == nil {
+			foreign.R = &depositR{}
+		}
+		foreign.R.ReferralPayouts = append(foreign.R.ReferralPayouts, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.DepositID == foreign.ID {
+				local.R.Deposit = foreign
+				if foreign.R == nil {
+					foreign.R = &depositR{}
 				}
 				foreign.R.ReferralPayouts = append(foreign.R.ReferralPayouts, local)
 				break
@@ -470,102 +566,6 @@ func (referralPayoutL) LoadFromAccount(ctx context.Context, e boil.ContextExecut
 	return nil
 }
 
-// LoadSubscription allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for an N-1 relationship.
-func (referralPayoutL) LoadSubscription(ctx context.Context, e boil.ContextExecutor, singular bool, maybeReferralPayout interface{}, mods queries.Applicator) error {
-	var slice []*ReferralPayout
-	var object *ReferralPayout
-
-	if singular {
-		object = maybeReferralPayout.(*ReferralPayout)
-	} else {
-		slice = *maybeReferralPayout.(*[]*ReferralPayout)
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &referralPayoutR{}
-		}
-		args = append(args, object.SubscriptionID)
-
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &referralPayoutR{}
-			}
-
-			for _, a := range args {
-				if a == obj.SubscriptionID {
-					continue Outer
-				}
-			}
-
-			args = append(args, obj.SubscriptionID)
-
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(
-		qm.From(`subscription`),
-		qm.WhereIn(`subscription.id in ?`, args...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load Subscription")
-	}
-
-	var resultSlice []*Subscription
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice Subscription")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results of eager load for subscription")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for subscription")
-	}
-
-	if len(resultSlice) == 0 {
-		return nil
-	}
-
-	if singular {
-		foreign := resultSlice[0]
-		object.R.Subscription = foreign
-		if foreign.R == nil {
-			foreign.R = &subscriptionR{}
-		}
-		foreign.R.ReferralPayouts = append(foreign.R.ReferralPayouts, object)
-		return nil
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if local.SubscriptionID == foreign.ID {
-				local.R.Subscription = foreign
-				if foreign.R == nil {
-					foreign.R = &subscriptionR{}
-				}
-				foreign.R.ReferralPayouts = append(foreign.R.ReferralPayouts, local)
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
 // SetAccount of the referralPayout to the related item.
 // Sets o.R.Account to related.
 // Adds o to related.R.ReferralPayouts.
@@ -604,6 +604,53 @@ func (o *ReferralPayout) SetAccount(ctx context.Context, exec boil.ContextExecut
 
 	if related.R == nil {
 		related.R = &accountR{
+			ReferralPayouts: ReferralPayoutSlice{o},
+		}
+	} else {
+		related.R.ReferralPayouts = append(related.R.ReferralPayouts, o)
+	}
+
+	return nil
+}
+
+// SetDeposit of the referralPayout to the related item.
+// Sets o.R.Deposit to related.
+// Adds o to related.R.ReferralPayouts.
+func (o *ReferralPayout) SetDeposit(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Deposit) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"referral_payout\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"deposit_id"}),
+		strmangle.WhereClause("\"", "\"", 2, referralPayoutPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.DepositID = related.ID
+	if o.R == nil {
+		o.R = &referralPayoutR{
+			Deposit: related,
+		}
+	} else {
+		o.R.Deposit = related
+	}
+
+	if related.R == nil {
+		related.R = &depositR{
 			ReferralPayouts: ReferralPayoutSlice{o},
 		}
 	} else {
@@ -655,53 +702,6 @@ func (o *ReferralPayout) SetFromAccount(ctx context.Context, exec boil.ContextEx
 		}
 	} else {
 		related.R.FromAccountReferralPayouts = append(related.R.FromAccountReferralPayouts, o)
-	}
-
-	return nil
-}
-
-// SetSubscription of the referralPayout to the related item.
-// Sets o.R.Subscription to related.
-// Adds o to related.R.ReferralPayouts.
-func (o *ReferralPayout) SetSubscription(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Subscription) error {
-	var err error
-	if insert {
-		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
-		}
-	}
-
-	updateQuery := fmt.Sprintf(
-		"UPDATE \"referral_payout\" SET %s WHERE %s",
-		strmangle.SetParamNames("\"", "\"", 1, []string{"subscription_id"}),
-		strmangle.WhereClause("\"", "\"", 2, referralPayoutPrimaryKeyColumns),
-	)
-	values := []interface{}{related.ID, o.ID}
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, updateQuery)
-		fmt.Fprintln(writer, values)
-	}
-	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	o.SubscriptionID = related.ID
-	if o.R == nil {
-		o.R = &referralPayoutR{
-			Subscription: related,
-		}
-	} else {
-		o.R.Subscription = related
-	}
-
-	if related.R == nil {
-		related.R = &subscriptionR{
-			ReferralPayouts: ReferralPayoutSlice{o},
-		}
-	} else {
-		related.R.ReferralPayouts = append(related.R.ReferralPayouts, o)
 	}
 
 	return nil

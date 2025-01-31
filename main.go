@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"deficonnect/go-api-starter/app"
-	"deficonnect/go-api-starter/postgres"
-	"deficonnect/go-api-starter/web"
+	"deficonnect/sonicflare/app"
+	"deficonnect/sonicflare/postgres"
+	"deficonnect/sonicflare/web"
 
 	"github.com/didip/tollbooth"
 	"github.com/didip/tollbooth/limiter"

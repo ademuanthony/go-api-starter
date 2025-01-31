@@ -3,7 +3,7 @@ package app
 import (
 	"net/http"
 
-	"deficonnect/go-api-starter/web"
+	"deficonnect/sonicflare/web"
 )
 
 type module struct {
@@ -55,5 +55,5 @@ func (m module) buildRoute() {
 }
 
 func welcome(w http.ResponseWriter, r *http.Request) {
-	web.SendJSON(w, "welcome to go-api-starter api. download the app from app store to start earning")
+	web.SendJSON(w, "welcome to sonicflare api. download the app from app store to start earning")
 }

@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 	"database/sql"
-	"deficonnect/go-api-starter/postgres/models"
+	"deficonnect/sonicflare/postgres/models"
 )
 
 type Trade struct {
@@ -36,6 +36,7 @@ type store interface {
 	GetRefferalCount(ctx context.Context, accountID string) (int64, error)
 	GetTeamInformation(ctx context.Context, accountID string) (*TeamInfo, error)
 	GetAccountByEmail(ctx context.Context, email string) (*models.Account, error)
+	GetAccountByTelegramID(ctx context.Context, telegramID int64) (*models.Account, error)
 	DebitAccount(ctx context.Context, accountID string, amount, date int64, ref string) error
 	DebitAccountTx(ctx context.Context, tx *sql.Tx, accountID string, amount, date int64, ref string) error
 	CreditAccount(ctx context.Context, accountID string, amount, date int64, ref string) error

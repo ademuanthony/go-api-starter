@@ -10,71 +10,23 @@ func TestUpsert(t *testing.T) {
 
 	t.Run("AccountTransactions", testAccountTransactionsUpsert)
 
-	t.Run("Agents", testAgentsUpsert)
-
-	t.Run("Beneficiaries", testBeneficiariesUpsert)
-
-	t.Run("CgoldHolders", testCgoldHoldersUpsert)
-
-	t.Run("CryptoAssets", testCryptoAssetsUpsert)
-
-	t.Run("CryptoDeposits", testCryptoDepositsUpsert)
-
-	t.Run("Currencies", testCurrenciesUpsert)
-
 	t.Run("DailyEarnings", testDailyEarningsUpsert)
 
 	t.Run("Deposits", testDepositsUpsert)
 
-	t.Run("DepositWallets", testDepositWalletsUpsert)
-
-	t.Run("DFCHolders", testDFCHoldersUpsert)
-
-	t.Run("DFCWalletTransactions", testDFCWalletTransactionsUpsert)
-
 	t.Run("Investments", testInvestmentsUpsert)
-
-	t.Run("KycForms", testKycFormsUpsert)
 
 	t.Run("LoginInfos", testLoginInfosUpsert)
 
-	t.Run("NetworkCurrencies", testNetworkCurrenciesUpsert)
-
 	t.Run("Notifications", testNotificationsUpsert)
-
-	t.Run("Packages", testPackagesUpsert)
-
-	t.Run("PaymentLinks", testPaymentLinksUpsert)
 
 	t.Run("ReferralPayouts", testReferralPayoutsUpsert)
 
 	t.Run("SecurityCodes", testSecurityCodesUpsert)
 
-	t.Run("StableNairaTransactions", testStableNairaTransactionsUpsert)
-
-	t.Run("StableNairaTransactionAssignments", testStableNairaTransactionAssignmentsUpsert)
-
-	t.Run("Subscriptions", testSubscriptionsUpsert)
-
-	t.Run("Trades", testTradesUpsert)
-
-	t.Run("TradeHistories", testTradeHistoriesUpsert)
-
-	t.Run("TradeSchedules", testTradeSchedulesUpsert)
-
-	t.Run("Transactions", testTransactionsUpsert)
-
-	t.Run("TransactionAssignments", testTransactionAssignmentsUpsert)
-
-	t.Run("Transfers", testTransfersUpsert)
-
 	t.Run("UserSettings", testUserSettingsUpsert)
 
 	t.Run("Wallets", testWalletsUpsert)
-
-	t.Run("WalletBalanaces", testWalletBalanacesUpsert)
-
-	t.Run("WeeklyPayouts", testWeeklyPayoutsUpsert)
 
 	t.Run("Withdrawals", testWithdrawalsUpsert)
 }
